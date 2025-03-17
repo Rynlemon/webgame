@@ -1,0 +1,134 @@
+/* 游戏通用样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background: url('background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* 统一返回按钮样式 */
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    font-weight: 500;
+    backdrop-filter: blur(5px);
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 统一游戏容器样式 */
+.game-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 500px;
+    margin-top: 20px;
+}
+
+/* 统一游戏控制按钮区域样式 */
+.game-controls {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* 统一控制按钮样式 */
+.control-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    font-weight: 500;
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 统一按钮颜色 */
+.start-btn { background: linear-gradient(135deg, #43cea2, #185a9d); }
+.end-btn { background: linear-gradient(135deg, #ff6b6b, #ee0979); }
+.restart-btn { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+/* 统一难度选择下拉框样式 */
+.difficulty-select {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.difficulty-select option {
+    background: #1a2a6c;
+    color: white;
+}
+
+/* 统一游戏信息区域样式 */
+.game-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 15px;
+    color: white;
+}
+
+.info-box {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+/* 统一控制说明文本样式 */
+.controls-info {
+    color: white;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .game-container {
+        width: 95%;
+    }
+}

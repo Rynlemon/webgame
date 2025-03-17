@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>贪吃蛇游戏</title>
+    <link rel="stylesheet" href="/game-common.css">
+    <style>
+        * {
+            touch-action: none;
+        }
+
+        .mode-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #43cea2, #185a9d);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .canvas-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+        }
+
+        canvas {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+        }
+
+        .score {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            font-weight: 500;
+        }
+
+        .start-btn { background: linear-gradient(135deg, #43cea2, #185a9d); }
+        .end-btn { background: linear-gradient(135deg, #ff6b6b, #ee0979); }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .difficulty-select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+        }
+
+        .difficulty-select option {
+            background: #1a2a6c;
+            color: white;
+        }
+
+        .controls-info {
+            color: white;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='/navigation'">返回</button>
+    <div class="mode-controls">
+        <button class="mode-btn active" id="keyboardMode">键盘控制</button>
+        <button class="mode-btn" id="touchMode">触摸控制</button>
+        <button class="mode-btn" id="gyroMode">陀螺仪控制</button>
+    </div>
+    <div class="game-container">
+        <div class="score">分数: <span id="scoreValue">0</span></div>
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+        </div>
+        <div class="controls-info">使用方向键控制蛇的移动</div>
+    </div>
+    <div class="game-controls">
+        <button class="control-btn start-btn" id="startBtn">开始游戏</button>
+        <button class="control-btn end-btn" id="endBtn" disabled>结束游戏</button>
+        <select class="difficulty-select" id="difficultySelect">
+            <option value="easy">简单</option>
+            <option value="medium">中等</option>
+            <option value="hard">困难</option>
+        </select>
+    </div>
+
+    <script>
+        // 游戏配置
+        const gridSize = 20;
+        const gameSpeed = {
+            easy: 150,
+            medium: 100,
+            hard: 50
+        };
+
+        // 初始化画布
+        const gameCanvas = document.getElementById('gameCanvas');
+        const gameCtx = gameCanvas.getContext('2d');
+
+        // 游戏状态
+        let game = {
+            snake: [{ x: 10, y: 10 }],
+            food: { x: 15, y: 15 },
+            dx: 0,
+            dy: 0,
+            score: 0,
+            tileCount: gameCanvas.width / gridSize
+        };
+
+        // 控制模式
+        let controlMode = 'keyboard'; // 默认为键盘控制
+
+        let gameLoop;
+        let currentSpeed = gameSpeed.medium;
+        let isGameRunning = false;
+
+        // 游戏控制
+        function setGameSpeed(difficulty) {
+            currentSpeed = gameSpeed[difficulty];
+            if (isGameRunning) {
+                clearInterval(gameLoop);
+                gameLoop = setInterval(updateGame, currentSpeed);
+            }
+        }
+
+        function startGame() {
+            if (!isGameRunning) {
+                resetGame();
+                isGameRunning = true;
+                gameLoop = setInterval(updateGame, currentSpeed);
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('endBtn').disabled = false;
+                document.getElementById('difficultySelect').disabled = true;
+            }
+        }
+
+        function endGame() {
+            clearInterval(gameLoop);
+            isGameRunning = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('endBtn').disabled = true;
+            document.getElementById('difficultySelect').disabled = false;
+        }
+
+        function resetGame() {
+            game = {
+                snake: [{ x: 10, y: 10 }],
+                food: { x: 15, y: 15 },
+                dx: 0,
+                dy: 0,
+                score: 0,
+                tileCount: gameCanvas.width / gridSize
+            };
+
+            document.getElementById('scoreValue').textContent = '0';
+        }
+
+        // 游戏逻辑
+        function updateGame() {
+            // 移动蛇
+            const head = { x: game.snake[0].x + game.dx, y: game.snake[0].y + game.dy };
+
+            // 检查是否吃到食物
+            if (head.x === game.food.x && head.y === game.food.y) {
+                // 根据难度级别设置不同的得分
+                const difficulty = document.getElementById('difficultySelect').value;
+                if (difficulty === 'easy') {
+                    game.score += 10;
+                } else if (difficulty === 'medium') {
+                    game.score += 20;
+                } else if (difficulty === 'hard') {
+                    game.score += 30;
+                }
+                document.getElementById('scoreValue').textContent = game.score;
+                generateFood(game);
+            } else {
+                game.snake.pop();
+            }
+
+            // 检查碰撞
+            if (checkCollision(game, head)) {
+                endGame();
+                alert(`游戏结束！得分：${game.score}`);
+                return;
+            }
+
+            game.snake.unshift(head);
+            drawGame();
+        }
+
+        function checkCollision(game, head) {
+            // 检查墙壁碰撞
+            if (head.x < 0 || head.x >= game.tileCount || head.y < 0 || head.y >= game.tileCount) {
+                return true;
+            }
+
+            // 检查自身碰撞
+            for (let i = 1; i < game.snake.length; i++) {
+                if (head.x === game.snake[i].x && head.y === game.snake[i].y) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function generateFood(game) {
+            game.food.x = Math.floor(Math.random() * game.tileCount);
+            game.food.y = Math.floor(Math.random() * game.tileCount);
+
+            // 确保食物不会生成在蛇身上
+            game.snake.forEach(segment => {
+                if (segment.x === game.food.x && segment.y === game.food.y) {
+                    generateFood(game);
+                }
+            });
+        }
+
+        function drawGame() {
+            // 清空画布
+            gameCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            // 绘制蛇
+            gameCtx.fillStyle = '#4CAF50';
+            game.snake.forEach(segment => {
+                gameCtx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+            });
+
+            // 绘制食物
+            gameCtx.fillStyle = '#FF5252';
+            gameCtx.fillRect(game.food.x * gridSize, game.food.y * gridSize, gridSize - 2, gridSize - 2);
+        }
+
+        // 键盘控制
+        document.addEventListener('keydown', (event) => {
+            if (!isGameRunning || controlMode !== 'keyboard') return;
+
+            switch (event.key) {
+                case 'ArrowUp':
+                    if (game.dy !== 1) { game.dx = 0; game.dy = -1; }
+                    break;
+                case 'ArrowDown':
+                    if (game.dy !== -1) { game.dx = 0; game.dy = 1; }
+                    break;
+                case 'ArrowLeft':
+                    if (game.dx !== 1) { game.dx = -1; game.dy = 0; }
+                    break;
+                case 'ArrowRight':
+                    if (game.dx !== -1) { game.dx = 1; game.dy = 0; }
+                    break;
+            }
+        });
+
+        // 触摸控制
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        gameCanvas.addEventListener('touchstart', (e) => {
+            if (!isGameRunning || controlMode !== 'touch') return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        gameCanvas.addEventListener('touchmove', (e) => {
+            if (!isGameRunning || controlMode !== 'touch') return;
+            e.preventDefault();
+
+            const touchEndX = e.touches[0].clientX;
+            const touchEndY = e.touches[0].clientY;
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0 && game.dx !== -1) { game.dx = 1; game.dy = 0; }
+                else if (dx < 0 && game.dx !== 1) { game.dx = -1; game.dy = 0; }
+            } else {
+                if (dy > 0 && game.dy !== -1) { game.dx = 0; game.dy = 1; }
+                else if (dy < 0 && game.dy !== 1) { game.dx = 0; game.dy = -1; }
+            }
+
+            touchStartX = touchEndX;
+            touchStartY = touchEndY;
+        });
+
+        // 陀螺仪控制
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', (e) => {
+                if (!isGameRunning || controlMode !== 'gyro') return;
+                
+                const tiltThreshold = 10;
+                const beta = e.beta;  // 前后倾斜
+                const gamma = e.gamma; // 左右倾斜
+
+                if (Math.abs(beta) > Math.abs(gamma)) {
+                    if (beta > tiltThreshold && game.dy !== -1) { game.dx = 0; game.dy = 1; }
+                    else if (beta < -tiltThreshold && game.dy !== 1) { game.dx = 0; game.dy = -1; }
+                } else {
+                    if (gamma > tiltThreshold && game.dx !== -1) { game.dx = 1; game.dy = 0; }
+                    else if (gamma < -tiltThreshold && game.dx !== 1) { game.dx = -1; game.dy = 0; }
+                }
+            });
+        }
+
+        // 添加控制模式切换事件监听
+        document.getElementById('keyboardMode').addEventListener('click', function() {
+            controlMode = 'keyboard';
+            updateActiveMode(this);
+            document.querySelector('.controls-info').textContent = '使用方向键控制蛇的移动';
+        });
+        
+        document.getElementById('touchMode').addEventListener('click', function() {
+            controlMode = 'touch';
+            updateActiveMode(this);
+            document.querySelector('.controls-info').textContent = '使用触摸屏滑动控制蛇的移动';
+        });
+        
+        document.getElementById('gyroMode').addEventListener('click', function() {
+            controlMode = 'gyro';
+            updateActiveMode(this);
+            document.querySelector('.controls-info').textContent = '使用设备倾斜控制蛇的移动';
+        });
+        
+        function updateActiveMode(button) {
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+        }
+
+        // 添加事件监听器
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('endBtn').addEventListener('click', endGame);
+        document.getElementById('difficultySelect').addEventListener('change', (e) => {
+            setGameSpeed(e.target.value);
+        });
+
+        // 初始化游戏速度
+        setGameSpeed('medium');
+    </script>
+</body>
+</html>

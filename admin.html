@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: url('background.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .admin-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding-bottom: 20px;
+        }
+
+        .admin-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: left;
+            font-size: 24px;
+            color: white;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #43cea2, #185a9d);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .admin-section h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+        }
+
+        .edit-btn, .save-btn {
+            background: linear-gradient(135deg, #43cea2, #185a9d);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn:hover, .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-list, .leaderboard-editor {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        input[type="text"], input[type="number"] {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            color: white;
+            width: 200px;
+        }
+
+        .game-selector {
+            margin-bottom: 20px;
+        }
+
+        .game-selector select {
+            background: rgba(40, 40, 80, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            color: white;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>后台管理系统</h1>
+            <button class="back-btn" onclick="window.location.href='/navigation'">返回主页</button>
+        </header>
+
+        <section class="admin-section">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="leaderboard">排行榜管理</button>
+                <button class="tab-btn" data-tab="users">用户管理</button>
+            </div>
+
+            <!-- 排行榜管理 -->
+            <div id="leaderboard" class="tab-content active">
+                <div class="game-selector">
+                    <label for="game-select">选择游戏：</label>
+                    <select id="game-select">
+                        <option value="game1">游戏1 - 贪吃蛇</option>
+                        <option value="game2">游戏2 - 扫雷</option>
+                        <option value="game3">游戏3 - 俄罗斯方块</option>
+                        <option value="game4">游戏4 - 射击训练</option>
+                        <option value="game5">游戏5 - 平衡球</option>
+                    </select>
+                </div>
+
+                <div class="leaderboard-editor">
+                    <table id="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>用户名</th>
+                                <th>分数</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 排行榜数据将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 用户管理 -->
+            <div id="users" class="tab-content">
+                <div class="user-list">
+                    <table id="user-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>用户名</th>
+                                <th>密码</th>
+                                <th>邮箱</th>
+                                <th>注册时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 用户数据将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 模拟数据 - 实际应用中应该从服务器获取
+        const leaderboardData = {
+            game1: [
+                { rank: 1, username: "玩家A", score: 1000 },
+                { rank: 2, username: "玩家B", score: 950 },
+                { rank: 3, username: "玩家C", score: 900 }
+            ],
+            game2: [
+                { rank: 1, username: "玩家D", score: 880 },
+                { rank: 2, username: "玩家E", score: 820 },
+                { rank: 3, username: "玩家F", score: 780 }
+            ],
+            game3: [
+                { rank: 1, username: "玩家G", score: 920 },
+                { rank: 2, username: "玩家H", score: 850 },
+                { rank: 3, username: "玩家I", score: 800 }
+            ],
+            game4: [
+                { rank: 1, username: "玩家J", score: 960 },
+                { rank: 2, username: "玩家K", score: 890 },
+                { rank: 3, username: "玩家L", score: 840 }
+            ],
+            game5: [
+                { rank: 1, username: "玩家M", score: 930 },
+                { rank: 2, username: "玩家N", score: 870 },
+                { rank: 3, username: "玩家O", score: 810 }
+            ]
+        };
+
+        // 模拟用户数据
+        const userData = [
+            { id: 1, username: "user1", password: "password1", email: "user1@example.com", registerDate: "2023-01-15" },
+            { id: 2, username: "user2", password: "password2", email: "user2@example.com", registerDate: "2023-02-20" },
+            { id: 3, username: "user3", password: "password3", email: "user3@example.com", registerDate: "2023-03-10" },
+            { id: 4, username: "user4", password: "password4", email: "user4@example.com", registerDate: "2023-04-05" },
+            { id: 5, username: "user5", password: "password5", email: "user5@example.com", registerDate: "2023-05-12" }
+        ];
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 标签切换功能
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 移除所有活动类
+                    tabBtns.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // 添加活动类到当前标签
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+            // 加载排行榜数据
+            loadLeaderboardData('game1');
+            
+            // 游戏选择器事件
+            document.getElementById('game-select').addEventListener('change', function() {
+                loadLeaderboardData(this.value);
+            });
+
+            // 加载用户数据
+            loadUserData();
+        });
+
+        // 加载排行榜数据
+        function loadLeaderboardData(gameId) {
+            const tableBody = document.querySelector('#leaderboard-table tbody');
+            tableBody.innerHTML = '';
+            
+            leaderboardData[gameId].forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.rank}</td>
+                    <td>
+                        <span class="display-value">${entry.username}</span>
+                        <input type="text" class="edit-value" value="${entry.username}" style="display:none">
+                    </td>
+                    <td>
+                        <span class="display-value">${entry.score}</span>
+                        <input type="number" class="edit-value" value="${entry.score}" style="display:none">
+                    </td>
+                    <td>
+                        <button class="edit-btn">编辑</button>
+                        <button class="save-btn" style="display:none">保存</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+                
+                // 添加编辑功能
+                const editBtn = row.querySelector('.edit-btn');
+                const saveBtn = row.querySelector('.save-btn');
+                const displayValues = row.querySelectorAll('.display-value');
+                const editValues = row.querySelectorAll('.edit-value');
+                
+                editBtn.addEventListener('click', function() {
+                    displayValues.forEach(val => val.style.display = 'none');
+                    editValues.forEach(val => val.style.display = 'block');
+                    editBtn.style.display = 'none';
+                    saveBtn.style.display = 'inline-block';
+                });
+                
+                saveBtn.addEventListener('click', function() {
+                    const newUsername = editValues[0].value;
+                    const newScore = parseInt(editValues[1].value);
+                    
+                    // 更新显示值
+                    displayValues[0].textContent = newUsername;
+                    displayValues[1].textContent = newScore;
+                    
+                    // 更新数据源
+                    const gameId = document.getElementById('game-select').value;
+                    const currentEntry = leaderboardData[gameId][index];
+                    currentEntry.username = newUsername;
+                    currentEntry.score = newScore;
+                    
+                    // 隐藏编辑界面
+                    displayValues.forEach(val => val.style.display = 'block');
+                    editValues.forEach(val => val.style.display = 'none');
+                    editBtn.style.display = 'inline-block';
+                    saveBtn.style.display = 'none';
+                    
+                    // 提示保存成功
+                    alert('排行榜数据已更新！');
+                });
+            });
+        }
+        
+        // 加载用户数据
+        function loadUserData() {
+            const tableBody = document.querySelector('#user-table tbody');
+            tableBody.innerHTML = '';
+            
+            userData.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.password}</td>
+                    <td>${user.email}</td>
+                    <td>${user.registerDate}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

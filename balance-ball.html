@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平衡球游戏</title>
+    <link rel="stylesheet" href="/game-common.css">
+    <style>
+        .game-container {
+            width: 80%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-board {
+            width: 600px;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ball {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #5eafff 0%, #0078ff 70%, #004a99 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 120, 255, 0.7);
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .obstacle {
+            position: absolute;
+            background: rgba(255, 0, 0, 0.7);
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        .coin {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffee5e 0%, #ffcc00 70%, #b38f00 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .difficulty-settings {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .setting-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-label {
+            font-size: 16px;
+            width: 200px;
+        }
+
+        .setting-control {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4facfe;
+            cursor: pointer;
+        }
+
+        .value-display {
+            width: 50px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .control-mode {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .mode-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .controls-info {
+            color: white;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                width: 95%;
+            }
+            .game-board {
+                width: 100%;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='/navigation'">返回</button>
+    <div class="game-container">
+        <div class="game-info">
+            <div class="info-box">分数: <span id="score">0</span></div>
+            <div class="info-box">时间: <span id="timer">60</span>秒</div>
+        </div>
+        <div class="game-board" id="gameBoard"></div>
+        <div class="control-mode">
+            <button class="mode-btn active" id="gyroBtn">陀螺仪控制</button>
+            <button class="mode-btn" id="touchBtn">触摸控制</button>
+        </div>
+        <div class="controls-info" id="controlsInfo">
+            倾斜设备来控制球体移动，收集金币并避开障碍物
+        </div>
+        <div class="difficulty-settings">
+            <div class="setting-group">
+                <div class="setting-label">球体大小:</div>
+                <div class="setting-control">
+                    <input type="range" id="ballSizeRange" min="15" max="40" value="30">
+                    <div class="value-display"><span id="ballSizeValue">30</span>px</div>
+                </div>
+            </div>
+            <div class="setting-group">
+                <div class="setting-label">障碍物数量:</div>
+                <div class="setting-control">
+                    <input type="range" id="obstacleCountRange" min="3" max="15" value="8">
+                    <div class="value-display"><span id="obstacleCountValue">8</span>个</div>
+                </div>
+            </div>
+            <div class="setting-group">
+                <div class="setting-label">游戏速度:</div>
+                <div class="setting-control">
+                    <input type="range" id="gameSpeedRange" min="1" max="5" step="0.5" value="2.5">
+                    <div class="value-display"><span id="gameSpeedValue">2.5</span>x</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="game-controls">
+        <button class="control-btn start-btn" id="startBtn">开始游戏</button>
+        <button class="control-btn end-btn" id="endBtn" disabled>结束游戏</button>
+        <button class="control-btn restart-btn" id="restartBtn" disabled>重新开始</button>
+    </div>
+
+    <script>
+        // DOM 元素
+        const gameBoard = document.getElementById('gameBoard');
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+        const endBtn = document.getElementById('endBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const ballSizeRange = document.getElementById('ballSizeRange');
+        const ballSizeValue = document.getElementById('ballSizeValue');
+        const obstacleCountRange = document.getElementById('obstacleCountRange');
+        const obstacleCountValue = document.getElementById('obstacleCountValue');
+        const gameSpeedRange = document.getElementById('gameSpeedRange');
+        const gameSpeedValue = document.getElementById('gameSpeedValue');
+        const gyroBtn = document.getElementById('gyroBtn');
+        const touchBtn = document.getElementById('touchBtn');
+        const controlsInfo = document.getElementById('controlsInfo');
+
+        // 游戏状态
+        let score = 0;
+        let timeLeft = 60;
+        let gameStarted = false;
+        let timerInterval = null;
+        let animationFrameId = null;
+        let lastTimestamp = 0;
+        let ballSize = 30;
+        let obstacleCount = 8;
+        let gameSpeed = 2.5;
+        let useGyro = true;
+        let ball = null;
+        let obstacles = [];
+        let coins = [];
+        let gyroSupported = false;
+        let gyroData = { x: 0, y: 0 };
+        let touchData = { x: null, y: null };
+
+        // 检测设备是否支持陀螺仪
+        function checkGyroSupport() {
+            return new Promise((resolve) => {
+                if (window.DeviceOrientationEvent) {
+                    // 对于iOS 13+，需要请求权限
+                    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        resolve('ios');
+                    } else {
+                        // 其他支持陀螺仪的设备
+                        window.addEventListener('deviceorientation', function(event) {
+                            if (event.beta !== null && event.gamma !== null) {
+                                resolve('supported');
+                            } else {
+                                resolve('not-supported');
+                            }
+                        }, { once: true });
+                        
+                        // 如果5秒内没有收到陀螺仪事件，则认为不支持
+                        setTimeout(() => {
+                            resolve('not-supported');
+                        }, 5000);
+                    }
+                } else {
+                    resolve('not-supported');
+                }
+            });
+        }
+
+        // 请求iOS设备的陀螺仪权限
+        async function requestIOSPermission() {
+            try {
+                const response = await DeviceOrientationEvent.requestPermission();
+                return response === 'granted';
+            } catch (error) {
+                console.error('获取陀螺仪权限失败:', error);
+                return false;
+            }
+        }
+
+        // 初始化陀螺仪
+        async function initGyro() {
+            const gyroStatus = await checkGyroSupport();
+            
+            if (gyroStatus === 'ios') {
+                gyroBtn.addEventListener('click', async function() {
+                    const granted = await requestIOSPermission();
+                    if (granted) {
+                        setupGyroListeners();
+                        gyroSupported = true;
+                    } else {
+                        alert('未获得陀螺仪权限，将使用触摸控制');
+                        switchToTouchControl();
+                    }
+                });
+            } else if (gyroStatus === 'supported') {
+                setupGyroListeners();
+                gyroSupported = true;
+            } else {
+                // 设备不支持陀螺仪，默认使用触摸控制
+                switchToTouchControl();
+            }
+        }
+
+        // 设置陀螺仪监听器
+        function setupGyroListeners() {
+            window.addEventListener('deviceorientation', function(event) {
+                // gamma是左右倾斜，beta是前后倾斜
+                gyroData.x = event.gamma;
+                gyroData.y = event.beta;
+            });
+        }
+
+        // 切换到触摸控制
+        function switchToTouchControl() {
+            useGyro = false;
+            gyroBtn.classList.remove('active');
+            touchBtn.classList.add('active');
+            controlsInfo.textContent = '触摸屏幕拖动来控制球体移动，收集金币并避开障碍物';
+        }
+
+        // 设置触摸监听器
+        function setupTouchListeners() {
+            gameBoard.addEventListener('touchstart', handleTouchStart);
+            gameBoard.addEventListener('touchmove', handleTouchMove);
+            gameBoard.addEventListener('touchend', handleTouchEnd);
+        }
+
+        function handleTouchStart(e) {
+            if (!gameStarted) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = gameBoard.getBoundingClientRect();
+            touchData.x = touch.clientX - rect.left;
+            touchData.y = touch.clientY - rect.top;
+        }
+
+        function handleTouchMove(e) {
+            if (!gameStarted) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = gameBoard.getBoundingClientRect();
+            touchData.x = touch.clientX - rect.left;
+            touchData.y = touch.clientY - rect.top;
+        }
+
+        function handleTouchEnd() {
+            touchData.x = null;
+            touchData.y = null;
+        }
+
+        // 更新设置显示
+        ballSizeRange.addEventListener('input', function() {
+            ballSize = parseInt(this.value);
+            ballSizeValue.textContent = ballSize;
+        });
+
+        obstacleCountRange.addEventListener('input', function() {
+            obstacleCount = parseInt(this.value);
+            obstacleCountValue.textContent = obstacleCount;
+        });
+
+        gameSpeedRange.addEventListener('input', function() {
+            gameSpeed = parseFloat(this.value);
+            gameSpeedValue.textContent = gameSpeed;
+        });
+
+        // 控制模式切换
+        gyroBtn.addEventListener('click', function() {
+            if (!gyroSupported) {
+                alert('您的设备不支持陀螺仪控制，将使用触摸控制');
+                return;
+            }
+            useGyro = true;
+            gyroBtn.classList.add('active');
+            touchBtn.classList.remove('active');
+            controlsInfo.textContent = '倾斜设备来控制球体移动，收集金币并避开障碍物';
+        });
+
+        touchBtn.addEventListener('click', function() {
+            useGyro = false;
+            gyroBtn.classList.remove('active');
+            touchBtn.classList.add('active');
+            controlsInfo.textContent = '触摸屏幕拖动来控制球体移动，收集金币并避开障碍物';
+        });
+
+        // 创建球体
+        function createBall() {
+            // 移除现有球体
+            if (ball) {
+                gameBoard.removeChild(ball);
+            }
+            
+            ball = document.createElement('div');
+            ball.className = 'ball';
+            ball.style.width = ballSize + 'px';
+            ball.style.height = ballSize + 'px';
+            
+            // 初始位置在游戏板中央
+            const boardWidth = gameBoard.clientWidth;
+            const boardHeight = gameBoard.clientHeight;
+            ball.style.left = (boardWidth / 2) + 'px';
+            ball.style.top = (boardHeight / 2) + 'px';
+            
+            gameBoard.appendChild(ball);
+            
+            return {
+                x: boardWidth / 2,
+                y: boardHeight / 2,
+                width: ballSize,
+                height: ballSize,
+                element: ball,
+                vx: 0,
+                vy: 0
+            };
+        }
+
+        // 创建障碍物
+        function createObstacles() {
+            // 清除现有障碍物
+            obstacles.forEach(obstacle => {
+                if (obstacle.element && obstacle.element.parentNode) {
+                    gameBoard.removeChild(obstacle.element);
+                }
+            });
+            obstacles = [];
+            
+            const boardWidth = gameBoard.clientWidth;
+            const boardHeight = gameBoard.clientHeight;
+            
+            for (let i = 0; i < obstacleCount; i++) {
+                const width = Math.random() * 60 + 40; // 40-100px
+                const height = Math.random() * 60 + 40; // 40-100px
+                
+                // 确保障害物不会生成在中央区域（球的初始位置）
+                let x, y;
+                const centerX = boardWidth / 2;
+                const centerY = boardHeight / 2;
+                const safeRadius = 100; // 中央安全区域半径
+                
+                do {
+                    x = Math.random() * (boardWidth - width);
+                    y = Math.random() * (boardHeight - height);
+                } while (Math.sqrt(Math.pow(x + width/2 - centerX, 2) + Math.pow(y + height/2 - centerY, 2)) < safeRadius);
+                
+                const obstacle = document.createElement('div');
+                obstacle.className = 'obstacle';
+                obstacle.style.width = width + 'px';
+                obstacle.style.height = height + 'px';
+                obstacle.style.left = x + 'px';
+                obstacle.style.top = y + 'px';
+                
+                gameBoard.appendChild(obstacle);
+                
+                obstacles.push({
+                    x: x,
+                    y: y,
+                    width: width,
+                    height: height,
+                    element: obstacle
+                });
+            }
+        }
+
+        // 创建金币
+        function createCoin() {
+            const boardWidth = gameBoard.clientWidth;
+            const boardHeight = gameBoard.clientHeight;
+            const coinSize = 20;
+            
+            // 尝试找到一个不与障碍物重叠的位置
+            let x, y;
+            let validPosition = false;
+            let attempts = 0;
+            const maxAttempts = 50;
+            
+            while (!validPosition && attempts < maxAttempts) {
+                x = Math.random() * (boardWidth - coinSize);
+                y = Math.random() * (boardHeight - coinSize);
+                validPosition = true;
+                
+                // 检查是否与障碍物重叠
+                for (const obstacle of obstacles) {
+                    if (x < obstacle.x + obstacle.width &&
+                        x + coinSize > obstacle.x &&
+                        y < obstacle.y + obstacle.height &&
+                        y + coinSize > obstacle.y) {
+                        validPosition = false;
+                        break;
+                    }
+                }
+                
+                attempts++;
+            }
+            
+            if (!validPosition) {
+                // 如果找不到合适位置，就放在一个默认位置
+                x = boardWidth / 2;
+                y = boardHeight / 4;
+            }
+            
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            coin.style.left = x + 'px';
+            coin.style.top = y + 'px';
+            
+            gameBoard.appendChild(coin);
+            
+            coins.push({
+                x: x,
+                y: y,
+                width: coinSize,
+                height: coinSize,
+                element: coin
+            });
+        }
+
+        // 检测碰撞
+        function checkCollision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+
+        // 更新球体位置
+        function updateBallPosition(timestamp) {
+            if (!lastTimestamp) {
+                lastTimestamp = timestamp;
+            }
+            
+            const deltaTime = (timestamp - lastTimestamp) / 1000; // 转换为秒
+            lastTimestamp = timestamp;
+            
+            if (!ball || !gameStarted) return;
+            
+            const boardWidth = gameBoard.clientWidth;
+            const boardHeight = gameBoard.clientHeight;
+            
+            // 根据控制模式更新球的速度
+            if (useGyro && gyroSupported) {
+                // 陀螺仪控制
+                // 限制陀螺仪数据范围
+                const maxTilt = 30;
+                const clampedX = Math.max(-maxTilt, Math.min(maxTilt, gyroData.x));
+                const clampedY = Math.max(-maxTilt, Math.min(maxTilt, gyroData.y));
+                
+                // 将倾斜角度转换为速度
+                ball.vx = (clampedX / maxTilt) * 300 * gameSpeed * deltaTime;
+                ball.vy = (clampedY / maxTilt) * 300 * gameSpeed * deltaTime;
+            } else if (touchData.x !== null && touchData.y !== null) {
+                // 触摸控制 - 球体会跟随触摸点移动
+                const targetX = touchData.x;
+                const targetY = touchData.y;
+                
+                // 计算球体当前位置与目标位置的差距
+                const dx = targetX - ball.x;
+                const dy = targetY - ball.y;
+                
+                // 根据差距计算速度，使用缓动效果
+                ball.vx = dx * 5 * gameSpeed * deltaTime;
+                ball.vy = dy * 5 * gameSpeed * deltaTime;
+            } else {
+                // 如果没有输入，球体会慢慢停下来
+                ball.vx *= 0.95;
+                ball.vy *= 0.95;
+            }
+            
+            // 更新球体位置
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+            
+            // 边界检测
+            if (ball.x < ball.width / 2) {
+                ball.x = ball.width / 2;
+                ball.vx = 0;
+            } else if (ball.x > boardWidth - ball.width / 2) {
+                ball.x = boardWidth - ball.width / 2;
+                ball.vx = 0;
+            }
+            
+            if (ball.y < ball.height / 2) {
+                ball.y = ball.height / 2;
+                ball.vy = 0;
+            } else if (ball.y > boardHeight - ball.height / 2) {
+                ball.y = boardHeight - ball.height / 2;
+                ball.vy = 0;
+            }
+            
+            // 更新DOM元素位置
+            ball.element.style.left = ball.x + 'px';
+            ball.element.style.top = ball.y + 'px';
+            
+            // 检测与障碍物的碰撞
+            for (const obstacle of obstacles) {
+                if (checkCollision(ball, obstacle)) {
+                    // 碰到障碍物，游戏结束
+                    endGame(false);
+                    return;
+                }
+            }
+            
+            // 检测与金币的碰撞
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                if (checkCollision(ball, coin)) {
+                    // 收集金币
+                    gameBoard.removeChild(coin.element);
+                    coins.splice(i, 1);
+                    score += 10;
+                    scoreElement.textContent = score;
+                    
+                    // 创建新金币
+                    createCoin();
+                }
+            }
+        }
+
+        // 游戏循环
+        function gameLoop(timestamp) {
+            if (!gameStarted) return;
+            
+            updateBallPosition(timestamp);
+            
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (gameStarted) return;
+            
+            // 清理现有游戏元素
+            if (ball && ball.element && ball.element.parentNode) {
+                gameBoard.removeChild(ball.element);
+                ball = null;
+            }
+            
+            // 重置游戏状态
+            score = 0;
+            timeLeft = 60;
+            scoreElement.textContent = score;
+            timerElement.textContent = timeLeft;
+            
+            // 创建游戏元素
+            ball = createBall();
+            createObstacles();
+            
+            // 清除现有金币
+            coins.forEach(coin => {
+                if (coin.element && coin.element.parentNode) {
+                    gameBoard.removeChild(coin.element);
+                }
+            });
+            coins = [];
+            
+            // 创建初始金币
+            createCoin();
+            
+            // 设置游戏控制
+            gameStarted = true;
+            startBtn.disabled = true;
+            endBtn.disabled = false;
+            restartBtn.disabled = false;
+            
+            // 禁用设置
+            ballSizeRange.disabled = true;
+            obstacleCountRange.disabled = true;
+            gameSpeedRange.disabled = true;
+            
+            // 启动计时器
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endGame(true);
+                }
+            }, 1000);
+            
+            // 启动游戏循环
+            lastTimestamp = 0;
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // 结束游戏
+        function endGame(timeUp) {
+            if (!gameStarted) return;
+            
+            gameStarted = false;
+            
+            // 停止计时器和动画
+            clearInterval(timerInterval);
+            cancelAnimationFrame(animationFrameId);
+            
+            // 更新按钮状态
+            startBtn.disabled = false;
+            endBtn.disabled = true;
+            restartBtn.disabled = false;
+            
+            // 启用设置
+            ballSizeRange.disabled = false;
+            obstacleCountRange.disabled = false;
+            gameSpeedRange.disabled = false;
+            
+            // 显示游戏结果
+            if (timeUp) {
+                alert(`游戏结束！您的得分是: ${score}`);
+            } else {
+                alert(`碰到障碍物，游戏结束！您的得分是: ${score}`);
+            }
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            startGame();
+        }
+
+        // 初始化游戏
+        function initGame() {
+            // 设置控制按钮事件
+            startBtn.addEventListener('click', startGame);
+            endBtn.addEventListener('click', () => endGame(false));
+            restartBtn.addEventListener('click', restartGame);
+            
+            // 初始化陀螺仪
+            initGyro();
+            
+            // 设置触摸监听器
+            setupTouchListeners();
+        }
+
+        // 当页面加载完成后初始化游戏
+        window.addEventListener('DOMContentLoaded', initGame);
+        // 确保在load事件中也调用初始化函数，以防DOMContentLoaded事件已经错过
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
