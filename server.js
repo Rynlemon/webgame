@@ -52,7 +52,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public'), {
     setHeaders: function (res, filePath) {
         // 只对图片和 CSS 文件设置缓存
-        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || filePath.endsWith('.png') || filePath.endsWith('.css')) {
+        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || filePath.endsWith('.png') || filePath.endsWith('.css')|| filePath.endsWith('.webp')) {
             res.set('Cache-Control', 'public, max-age=86400,s-maxage=864000');  // 缓存 
         }
     }
