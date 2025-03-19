@@ -609,7 +609,7 @@
             </div>
         </section>
         <section class="leaderboard">
-            <h3>游戏1排行榜</h3>
+            <h3 id="rank-snake">贪吃蛇排行榜</h3>
             <table>
                 <thead>
                     <tr>
@@ -626,7 +626,7 @@
             </table>
         </section>
         <section class="leaderboard">
-            <h3>游戏2排行榜</h3>
+            <h3 id="rank-shoot">射击排行榜</h3>
             <table>
                 <thead>
                     <tr>
@@ -643,7 +643,7 @@
             </table>
         </section>
         <section class="leaderboard">
-            <h3>游戏3排行榜</h3>
+            <h3 id="rank-saolei">扫雷排行榜</h3>
             <table>
                 <thead>
                     <tr>
@@ -660,7 +660,7 @@
             </table>
         </section>
         <section class="leaderboard">
-            <h3>游戏4排行榜</h3>
+            <h3 id="rank-fangkuai">俄罗斯方块排行榜</h3>
             <table>
                 <thead>
                     <tr>
@@ -677,7 +677,7 @@
             </table>
         </section>
         <section class="leaderboard">
-            <h3>游戏5排行榜</h3>
+            <h3 id="rank-Balanceball">平衡球排行榜</h3>
             <table>
                 <thead>
                     <tr>
@@ -1193,6 +1193,25 @@
             }
         };
             
+    document.addEventListener("DOMContentLoaded", function () {
+        const games = ["snake", "shoot", "saolei", "fangkuai", "Balanceball"];
+
+        games.forEach((game) => {
+        fetch(`/leaderboard/${game}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector(`#rank-${game} + table tbody`);
+                tbody.innerHTML = ""; // 清空原有数据
+
+                data.forEach((player, index) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `<td>${index + 1}</td><td>${player.username}</td><td>${player.score}</td>`;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => console.error(`加载 ${game} 排行榜失败:`, error));
+    });
+});
     </script>
 </body>
 </html>

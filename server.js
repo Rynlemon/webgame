@@ -155,7 +155,17 @@ app.get('/balance-ball', (req, res) => {
     res.sendFile(path.join(__dirname, '/balance-ball.html'));    
 });
 
-
+// 获取排行榜数据
+app.get("/leaderboard/:game", (req, res) => {
+    const game = req.params.game; // 获取请求的游戏名称
+    const sql = `SELECT username, score FROM ${game} ORDER BY score DESC LIMIT 3`; // 按分数降序排序并限制前 3 名
+    db.query(sql, (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: "数据库查询失败" });
+        }
+        res.json(result);
+    });
+});
 
 
 // 登录接口
