@@ -147,6 +147,34 @@
     </div>
 
     <script>
+        const urlParams=new URLSearchParams(window.location.search);
+        const username=urlParams.get('username');
+        function submitScore(score) {
+        // 发送 POST 请求将用户名和分数发送到服务器
+        fetch('/submit-score-fangkuai', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                score: score,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('分数提交成功');
+            } else {
+                console.log('分数提交失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+
         // 游戏配置
         const ROWS = 20;
         const COLS = 10;
@@ -508,6 +536,7 @@
         function gameOver() {
             endGame();
             alert(`游戏结束！你的得分是: ${score}`);
+            submitScore(score);
         }
 
         // 检查游戏是否结束

@@ -67,18 +67,18 @@ app.post('/login', (req, res) => {
     db.execute(sql, [username, password], (err, results) => {
         if (err) {
             console.error('Error executing query', err);
-            res.status(500).json({ success: false, message: 'Database query failed' });
-            return;
+            return res.status(500).json({ success: false, message: 'Database query failed' });
         }
 
         if (results.length > 0) {
-            req.session.user = { username };  // 在会话中存储用户信息
-            res.json({ success: true, message: 'Login successful' });
-        } else {
-            res.json({ success: false, message: 'Invalid username or password' });
-        }
+            req.session.user = { username };
+            return res.json({ success: true, message: 'Login successful' });
+        } 
+        
+        return res.json({ success: false, message: 'Invalid username or password' });
     });
 });
+
 
 //注册接口
 app.post('/register', (req, res) => {
@@ -156,9 +156,18 @@ app.get('/balance-ball', (req, res) => {
 });
 
 // 获取排行榜数据
+// 获取排行榜数据
 app.get("/leaderboard/:game", (req, res) => {
     const game = req.params.game; // 获取请求的游戏名称
-    const sql = `SELECT username, score FROM ${game} ORDER BY score DESC LIMIT 3`; // 按分数降序排序并限制前 3 名
+    let sql;
+
+    // 如果是扫雷游戏，查询得分最小的玩家
+    if (game === "saolei") {
+        sql = `SELECT username, score FROM ${game} ORDER BY score ASC LIMIT 3`; // 按分数升序排序并限制前 3 名
+    } else {
+        sql = `SELECT username, score FROM ${game} ORDER BY score DESC LIMIT 3`; // 默认按分数降序排序并限制前 3 名
+    }
+
     db.query(sql, (err, result) => {
         if (err) {
             return res.status(500).json({ error: "数据库查询失败" });
@@ -166,6 +175,7 @@ app.get("/leaderboard/:game", (req, res) => {
         res.json(result);
     });
 });
+
 
 
 // 登录接口
@@ -177,6 +187,82 @@ app.post('/api/login', (req, res) => {
     }
 
     res.json({ success: true, message: "✅ 登录成功！" });
+});
+// 贪吃蛇-提交分数接口
+app.post('/submit-score', (req, res) => {
+    const { username, score } = req.body;
+
+    // 贪吃蛇表单提交
+    const sql = 'INSERT INTO snake (username, score) VALUES (?, ?)';
+    db.execute(sql, [username, score], (err, results) => {
+        if (err) {
+            console.error('Error inserting score into database', err);
+            return res.status(500).json({ success: false, message: '数据库插入失败' });
+        }
+
+        return res.json({ success: true, message: '分数提交成功' });
+    });
+});
+
+// 俄罗斯方块-提交分数接口
+app.post('/submit-score-fangkuai', (req, res) => {
+    const { username, score } = req.body;
+
+    // 表单提交
+    const sql = 'INSERT INTO fangkuai (username, score) VALUES (?, ?)';
+    db.execute(sql, [username, score], (err, results) => {
+        if (err) {
+            console.error('Error inserting score into database', err);
+            return res.status(500).json({ success: false, message: '数据库插入失败' });
+        }
+
+        return res.json({ success: true, message: '分数提交成功' });
+    });
+});
+// shoot-提交分数接口
+app.post('/submit-score-shoot', (req, res) => {
+    const { username, score } = req.body;
+
+    // 表单提交
+    const sql = 'INSERT INTO shoot (username, score) VALUES (?, ?)';
+    db.execute(sql, [username, score], (err, results) => {
+        if (err) {
+            console.error('Error inserting score into database', err);
+            return res.status(500).json({ success: false, message: '数据库插入失败' });
+        }
+
+        return res.json({ success: true, message: '分数提交成功' });
+    });
+});
+
+app.post('/submit-score-saolei', (req, res) => {
+    const { username, score } = req.body;
+
+    // 表单提交
+    const sql = 'INSERT INTO saolei (username, score) VALUES (?, ?)';
+    db.execute(sql, [username, score], (err, results) => {
+        if (err) {
+            console.error('Error inserting score into database', err);
+            return res.status(500).json({ success: false, message: '数据库插入失败' });
+        }
+
+        return res.json({ success: true, message: '分数提交成功' });
+    });
+});
+
+app.post('/submit-score-ball', (req, res) => {
+    const { username, score } = req.body;
+
+    // 表单提交
+    const sql = 'INSERT INTO Balanceball (username, score) VALUES (?, ?)';
+    db.execute(sql, [username, score], (err, results) => {
+        if (err) {
+            console.error('Error inserting score into database', err);
+            return res.status(500).json({ success: false, message: '数据库插入失败' });
+        }
+
+        return res.json({ success: true, message: '分数提交成功' });
+    });
 });
 
 app.listen(PORT, () => {

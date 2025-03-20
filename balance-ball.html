@@ -215,6 +215,33 @@
     </div>
 
     <script>
+         //结果发送
+         const urlParams=new URLSearchParams(window.location.search);
+        const username=urlParams.get('username');
+        function submitScore(score) {
+        // 发送 POST 请求将用户名和分数发送到服务器
+        fetch('/submit-score-ball', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                score: score,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('分数提交成功');
+            } else {
+                console.log('分数提交失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
         // DOM 元素
         const gameBoard = document.getElementById('gameBoard');
         const scoreElement = document.getElementById('score');
@@ -716,8 +743,16 @@
             // 显示游戏结果
             if (timeUp) {
                 alert(`游戏结束！您的得分是: ${score}`);
+                if(score!=0)
+            {
+                submitScore(score);
+            }
             } else {
                 alert(`碰到障碍物，游戏结束！您的得分是: ${score}`);
+                if(score!=0)
+            {
+                submitScore(score);
+            }
             }
         }
 

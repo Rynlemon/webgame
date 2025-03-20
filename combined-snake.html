@@ -143,6 +143,32 @@
     </div>
 
     <script>
+        const urlParams=new URLSearchParams(window.location.search);
+        const username=urlParams.get('username');
+        function submitScore(score) {
+        // 发送 POST 请求将用户名和分数发送到服务器
+        fetch('/submit-score', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                score: score,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('分数提交成功');
+            } else {
+                console.log('分数提交失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
         // 游戏配置
         const gridSize = 20;
         const gameSpeed = {
@@ -239,6 +265,7 @@
             if (checkCollision(game, head)) {
                 endGame();
                 alert(`游戏结束！得分：${game.score}`);
+                submitScore(game.score);
                 return;
             }
 
@@ -395,6 +422,8 @@
 
         // 初始化游戏速度
         setGameSpeed('medium');
+
+        
     </script>
 </body>
 </html>

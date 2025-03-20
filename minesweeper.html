@@ -71,6 +71,36 @@
         <div class="game-board" id="board"></div>
     </div>
     <script>
+         //结果发送
+         const urlParams=new URLSearchParams(window.location.search);
+        const username=urlParams.get('username');
+        function submitScore(score) {
+        // 发送 POST 请求将用户名和分数发送到服务器
+        fetch('/submit-score-saolei', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                score: score,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('分数提交成功');
+            } else {
+                console.log('分数提交失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+
+
         let gameStarted = false;
         let gameEnded = false;
         let timer = 0;
@@ -217,7 +247,7 @@
             if (board[row][col] === 'mine') {
                 cell.classList.add('mine');
                 endGame();
-                alert('游戏结束！');
+                alert('失败！');
                 return;
             }
 
@@ -255,6 +285,7 @@
             const totalCells = rows * cols;
             if (revealedCount === totalCells - mineCount) {
                 alert(`恭喜你赢了！用时：${timer}秒`);
+                submitScore(timer);
                 endGame();
             }
         }

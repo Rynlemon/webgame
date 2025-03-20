@@ -592,11 +592,11 @@
             <button id="admin-btn" class="admin-btn">后台管理</button>
         </header>
         <section class="games-section">
-            <button class="game-btn game-1" onclick="window.location.href='/combined-snake'">贪吃蛇</button>
-            <button class="game-btn game-2" onclick="window.location.href='/minesweeper'">扫雷</button>
-            <button class="game-btn game-3" onclick="window.location.href='/tetris'">俄罗斯方块</button>
-            <button class="game-btn game-4" onclick="window.location.href='/shooting-game'">射击训练</button>
-            <button class="game-btn game-5" onclick="window.location.href='/balance-ball'">平衡球</button>
+            <button class="game-btn game-1" onclick="snake()">贪吃蛇</button>
+            <button class="game-btn game-2" onclick="saolei()">扫雷</button>
+            <button class="game-btn game-3" onclick="fangkuai()">俄罗斯方块</button>
+            <button class="game-btn game-4" onclick="shoot()">射击训练</button>
+            <button class="game-btn game-5" onclick="Balanceball()">平衡球</button>
         </section>
         <section class="danmu-module">
             <h3>公共聊天大厅</h3>
@@ -649,7 +649,7 @@
                     <tr>
                         <th>排名</th>
                         <th>用户名</th>
-                        <th>分数</th>
+                        <th>用时</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -722,6 +722,8 @@
         </aside>
     </div>
     <script>
+        
+
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const username = urlParams.get('username');
@@ -1192,8 +1194,9 @@
                 document.getElementById('username').textContent = username;
             }
         };
-            
-    document.addEventListener("DOMContentLoaded", function () {
+        
+        //排行榜展示
+        document.addEventListener("DOMContentLoaded", function () {
         const games = ["snake", "shoot", "saolei", "fangkuai", "Balanceball"];
 
         games.forEach((game) => {
@@ -1212,6 +1215,24 @@
             .catch(error => console.error(`加载 ${game} 排行榜失败:`, error));
     });
 });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get('username');
+    function snake(){
+        window.location.href = `/combined-snake?username=${username}`;
+    }
+    function saolei(){
+        window.location.href = `/minesweeper?username=${username}`;
+    }
+    function shoot(){
+        window.location.href = `/shooting-game?username=${username}`;
+    }
+    function fangkuai(){
+        window.location.href = `/tetris?username=${username}`;
+    }
+    function Balanceball(){
+        window.location.href = `/balance-ball?username=${username}`;
+    }
     </script>
 </body>
 </html>
