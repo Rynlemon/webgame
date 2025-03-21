@@ -62,6 +62,17 @@ app.use(express.static(path.join(__dirname, 'public'), {
 //登录接口
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
+    const clientIP = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.connection.remoteAddress;
+// 如果是 IPv6 地址，过滤掉它
+    if (clientIP.includes(':')) {
+    // 处理 IPv6 地址，取其中的 IPv4 地址部分
+        const ipv4Address = clientIP.split(':').pop();  // 假设你希望取 IPv6 地址的最后一部分（如果是 IPv6 的嵌入 IPv4 地址）
+        if (ipv4Address.match(/\d+\.\d+\.\d+\.\d+/)) {
+            console.log("IPv4 address extracted from IPv6: ", ipv4Address);
+            clientIP = ipv4Address;  // 更新为提取到的 IPv4 地址
+        }
+    }
+    const browserInfo = req.headers["user-agent"];
 
     const sql = 'SELECT * FROM users WHERE username = ? AND password = ?';
     db.execute(sql, [username, password], (err, results) => {
@@ -71,6 +82,14 @@ app.post('/login', (req, res) => {
         }
 
         if (results.length > 0) {
+             // 记录登录日志
+             db.query("INSERT INTO login_logs (username, ip_address, login_time, browser_info) VALUES (?, ?,NOW(), ? )",
+                [username, clientIP, browserInfo],
+                (err) => {
+                    if (err) {
+                        console.error("日志写入失败:", err);
+                    }
+                });
             req.session.user = { username };
             return res.json({ success: true, message: 'Login successful' });
         } 
@@ -188,6 +207,7 @@ app.post('/api/login', (req, res) => {
 
     res.json({ success: true, message: "✅ 登录成功！" });
 });
+
 // 贪吃蛇-提交分数接口
 app.post('/submit-score', (req, res) => {
     const { username, score } = req.body;
@@ -265,6 +285,6 @@ app.post('/submit-score-ball', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '127.0.0.1',() => {
     console.log(`🚀 服务器运行在 http://127.0.0.1:${PORT}`);
 });
