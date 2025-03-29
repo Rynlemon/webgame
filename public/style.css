@@ -12,6 +12,7 @@ body {
     display: flex;
     position: relative;
     overflow: hidden;
+    transform: translateZ(0); /* 启用硬件加速 */
 }
 
 .game-title {

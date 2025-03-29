@@ -5,9 +5,9 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
 const session = require('express-session');
-
-
 const cors = require('cors');
+
+
 app.use(cors());  // 允许跨域请求
 
 app.set('view engine', 'ejs');   // 使用 EJS 模板引擎
@@ -46,7 +46,7 @@ db.connect((err) => {
 });
 
 // 提供静态文件服务
-app.use(express.static('/home/ubuntu/webgame')); // 设置静态文件的路径
+app.use(express.static('/root/webgame')); // 设置静态文件的路径
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public'), {
