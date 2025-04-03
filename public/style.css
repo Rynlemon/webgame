@@ -6,13 +6,22 @@
 
 body {
     font-family: 'Microsoft YaHei', sans-serif;
-    background: url('https://softworker2.ggff.net/public/background.jpg') no-repeat center center fixed;
+    background: url('https://softworker2.ggff.net/public/background_mini.jpg') no-repeat center center fixed;
     background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     height: 100vh;
+    width: 100%;
     display: flex;
     position: relative;
     overflow: hidden;
     transform: translateZ(0); /* 启用硬件加速 */
+    filter: blur(50px); /* 高斯模糊 */
+    transition: filter 1s ease-out; /* 背景过渡效果 */
+}
+
+.background-loaded {
+    filter: none; /* 移除高斯模糊 */
 }
 
 .game-title {
